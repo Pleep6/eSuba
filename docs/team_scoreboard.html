@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Team Scoreboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080b;--panel:#0f1218;--panel2:#131820;--border:#1a2230;--border2:#1e2a3a;
+  --gold:#c89b3c;--gold2:#f0d07a;--gold3:rgba(200,155,60,.1);
+  --text:#9ab0c8;--text2:#4a6070;--text3:#6a8090;
+  --blue:#4fc3f7;--blue-d:rgba(79,195,247,.08);--blue-b:rgba(79,195,247,.22);
+  --red:#ef5350;--red-d:rgba(239,83,80,.08);--red-b:rgba(239,83,80,.22);
+  --green:#4caf50;--green-d:rgba(76,175,80,.1);--green-b:rgba(76,175,80,.3);
+  --orange:#ff9800;
+  --top:#4fc3f7;--jgl:#66bb6a;--mid:#f0d07a;--adc:#ef5350;--sup:#ce93d8;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;gap:16px;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:10;}
+.hdr-logo{width:36px;height:36px;border-radius:6px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(200,155,60,.4));}
+.hdr-logo-ph{width:36px;height:36px;border-radius:6px;background:var(--panel2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--gold);}
+.hdr-info{display:flex;flex-direction:column;gap:2px;}
+.hdr-name{font-family:'Inter',sans-serif;font-size:1.1rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold);}
+.hdr-meta{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--text2);letter-spacing:2px;}
+.hdr-record{margin-left:auto;display:flex;gap:12px;align-items:center;}
+.rec-item{text-align:center;}
+.rec-val{font-family:'Inter',sans-serif;font-size:1.4rem;font-weight:800;line-height:1;}
+.rec-lbl{font-family:'JetBrains Mono',monospace;font-size:.48rem;color:var(--text2);letter-spacing:2px;margin-top:1px;}
+
+/* ── WRAP ── */
+.wrap{padding:16px 24px;display:flex;flex-direction:column;gap:16px;max-width:1600px;margin:0 auto;}
+
+/* ── SECTION LABEL ── */
+.sec{font-family:'Inter',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:var(--text2);padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sec-accent{color:var(--gold);}
+
+/* ── GAME STATS CARDS ── */
+.gstats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;}
+.gstat-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.gstat-icon{font-size:1.2rem;flex-shrink:0;}
+.gstat-val{font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1;}
+.gstat-lbl{font-family:'JetBrains Mono',monospace;font-size:.48rem;color:var(--text2);letter-spacing:1px;margin-top:3px;text-transform:uppercase;}
+
+/* ── PLAYER CARDS ── */
+.players{display:flex;flex-direction:column;gap:5px;}
+.pcard{
+  display:grid;
+  grid-template-columns:26px 44px 150px 180px 90px 80px 80px 80px;
+  align-items:stretch;
+  background:var(--panel);border:1px solid var(--border);border-radius:5px;
+  overflow:hidden;transition:border-color .15s,box-shadow .15s;
+  cursor:pointer;
+}
+.pcard:hover{border-color:var(--gold);box-shadow:0 0 12px rgba(200,155,60,.15);}
+.pc-role-bar{display:flex;align-items:center;justify-content:center;writing-mode:vertical-lr;font-family:'Inter',sans-serif;font-size:.5rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.role-top    .pc-role-bar{background:rgba(79,195,247,.08);color:var(--top);border-right:2px solid var(--top);}
+.role-jungle .pc-role-bar{background:rgba(102,187,106,.08);color:var(--jgl);border-right:2px solid var(--jgl);}
+.role-mid    .pc-role-bar,.role-middle .pc-role-bar{background:rgba(240,208,122,.08);color:var(--mid);border-right:2px solid var(--mid);}
+.role-bottom .pc-role-bar,.role-adc    .pc-role-bar{background:rgba(239,83,80,.08);color:var(--adc);border-right:2px solid var(--adc);}
+.role-support .pc-role-bar{background:rgba(206,147,216,.08);color:var(--sup);border-right:2px solid var(--sup);}
+.pc-champs{padding:5px 6px;display:flex;gap:3px;flex-wrap:wrap;align-items:center;border-right:1px solid var(--border);}
+.cico{width:26px;height:26px;border-radius:50%;overflow:hidden;border:1.5px solid var(--border2);flex-shrink:0;background:var(--panel2);}
+.cico img{width:100%;height:100%;object-fit:cover;display:block;}
+.cico-more{width:20px;height:20px;border-radius:50%;background:var(--panel2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.45rem;color:var(--text2);}
+.pc-name-cell{padding:6px 10px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;}
+.pc-name{font-family:'Inter',sans-serif;font-size:.95rem;font-weight:700;color:var(--gold2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-games{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text2);margin-top:2px;}
+.pc-sq-status{font-family:'JetBrains Mono',monospace;font-size:.45rem;margin-top:2px;color:var(--text2);}
+.pc-kda-cell{padding:6px 8px;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.kda-nums{font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.5px;white-space:nowrap;}
+.kda-nums .k{color:var(--green);}
+.kda-nums .d{color:var(--red);}
+.kda-nums .a{color:var(--blue);}
+.pc-stat{padding:6px 8px;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.pc-stat:last-child{border-right:none;}
+.sv{font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;color:var(--text);line-height:1;}
+.sl{font-family:'JetBrains Mono',monospace;font-size:.45rem;color:var(--text2);letter-spacing:1px;text-transform:uppercase;}
+
+/* ── OBJECTIVES GRID ── */
+.obj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.obj-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;transition:border-color .15s;}
+.obj-card:hover{border-color:var(--border2);}
+.obj-pct{font-family:'Inter',sans-serif;font-size:1.6rem;font-weight:900;line-height:1;}
+.obj-lbl{font-family:'Inter',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);}
+.obj-sub{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--text2);}
+.obj-bar{height:3px;background:var(--border2);border-radius:2px;margin-top:4px;overflow:hidden;}
+.obj-fill{height:100%;border-radius:2px;}
+
+/* ── SIDE STATS ── */
+.side-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.side-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+.side-hdr{padding:8px 14px;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.side-hdr.blue{background:var(--blue-d);color:var(--blue);border-left:3px solid var(--blue);}
+.side-hdr.red {background:var(--red-d); color:var(--red); border-left:3px solid var(--red);}
+.side-body{padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.side-row{display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif;font-size:.8rem;}
+.side-key{flex:1;color:var(--text2);font-weight:600;letter-spacing:.5px;}
+.side-val{font-weight:800;color:var(--text);}
+.side-bar-wrap{flex:2;height:6px;background:var(--border2);border-radius:3px;overflow:hidden;}
+.side-bar-fill{height:100%;border-radius:3px;}
+
+/* ── LANE DIFF ── */
+.lanediff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+.ld-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.ld-role{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.ld-stats{display:flex;gap:16px;align-items:center;}
+.ld-val{font-family:'Inter',sans-serif;font-size:18px;font-weight:800;line-height:1;}
+.ld-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2);margin-top:2px;}
+.ld-divider{height:1px;background:var(--border);margin:0 -2px;}
+.ld-plate-val{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:var(--gold2);line-height:1;}
+.ld-plate-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text2);margin-top:3px;}
+.ld-plate-badge{font-family:'JetBrains Mono',monospace;font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:1px;margin-left:4px;vertical-align:middle;}
+.ld-plate-badge.lane{background:rgba(79,195,247,.07);color:var(--text2);border:1px solid var(--border2);}
+.ld-plate-badge.gank{background:rgba(102,187,106,.12);color:var(--jgl);border:1px solid rgba(102,187,106,.3);}
+
+/* ── SOLOQ TRACKER ── */
+.sq-grid{display:flex;flex-direction:column;gap:6px;}
+.sq-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+/* Sin columna de forma — 4 columnas */
+.sq-hdr{display:grid;grid-template-columns:26px 160px 120px 1fr;align-items:center;gap:0;border-bottom:1px solid var(--border);}
+.sq-role-bar{display:flex;align-items:center;justify-content:center;writing-mode:vertical-lr;font-family:'Inter',sans-serif;font-size:.5rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:8px 0;}
+.role-top    .sq-role-bar{background:rgba(79,195,247,.08);color:var(--top);border-right:2px solid var(--top);}
+.role-jungle .sq-role-bar{background:rgba(102,187,106,.08);color:var(--jgl);border-right:2px solid var(--jgl);}
+.role-mid    .sq-role-bar,.role-middle .sq-role-bar{background:rgba(240,208,122,.08);color:var(--mid);border-right:2px solid var(--mid);}
+.role-bottom .sq-role-bar,.role-adc    .sq-role-bar{background:rgba(239,83,80,.08);color:var(--adc);border-right:2px solid var(--adc);}
+.role-support .sq-role-bar{background:rgba(206,147,216,.08);color:var(--sup);border-right:2px solid var(--sup);}
+.sq-player{padding:8px 12px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--border);}
+.sq-name{font-size:13px;font-weight:700;color:var(--gold2);}
+.sq-riot-id{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2);}
+.sq-ranked{padding:8px 12px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+.sq-rank-val{font-size:12px;font-weight:700;color:var(--text);}
+.sq-rank-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2);}
+.sq-champs{padding:6px 10px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+.sq-champ{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.sq-champ-ico{width:32px;height:32px;border-radius:50%;overflow:hidden;border:2px solid var(--border2);background:var(--panel2);}
+.sq-champ-ico img{width:100%;height:100%;object-fit:cover;display:block;}
+.sq-champ-ico.is-new{border-color:var(--orange);box-shadow:0 0 6px rgba(255,152,0,.4);}
+.sq-champ-ico.in-comp{border-color:var(--green);box-shadow:0 0 6px rgba(76,175,80,.3);}
+.sq-champ-wr{font-family:'Barlow Condensed','Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-align:center;}
+.sq-new-badge{position:absolute;top:-3px;right:-3px;background:var(--orange);color:#000;font-size:7px;font-weight:800;border-radius:50%;width:12px;height:12px;display:flex;align-items:center;justify-content:center;}
+.sq-new-section{padding:4px 10px 6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.sq-new-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--orange);letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+.sq-new-chip{font-family:'JetBrains Mono',monospace;font-size:9px;background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.25);color:var(--orange);padding:1px 6px;border-radius:3px;}
+
+/* ── SOLOQ PROGRESS BAR ── */
+#soloq-progress{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px 16px;display:flex;flex-direction:column;gap:8px;}
+.sq-prog-title{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text2);letter-spacing:2px;}
+.sq-prog-bar-wrap{height:4px;background:var(--border2);border-radius:2px;overflow:hidden;}
+.sq-prog-bar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .4s ease;}
+.sq-prog-players{display:flex;gap:8px;flex-wrap:wrap;}
+.sq-prog-pip{font-family:'JetBrains Mono',monospace;font-size:.55rem;padding:2px 8px;border-radius:3px;border:1px solid var(--border);}
+.sq-prog-pip.pending{color:var(--text2);background:transparent;}
+.sq-prog-pip.loading{color:var(--gold);background:rgba(200,155,60,.08);border-color:var(--gold);animation:sqpulse 1s ease-in-out infinite;}
+.sq-prog-pip.done{color:var(--green);background:rgba(76,175,80,.08);border-color:var(--green);}
+.sq-prog-pip.error{color:var(--red);background:rgba(239,83,80,.08);border-color:var(--red);}
+@keyframes sqpulse{0%,100%{opacity:.6;}50%{opacity:1;}}
+
+/* ── MODAL ── */
+#soloq-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.modal-inner{background:var(--panel);border:1px solid var(--border2);border-radius:8px;width:min(960px,95vw);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);z-index:1;}
+.modal-title{font-family:'Inter',sans-serif;font-size:.9rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);}
+.modal-close{background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:3px;transition:color .15s;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:18px;}
+
+/* ── MODAL STAT BLOCK ── */
+.mstat-block{background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:10px 14px;text-align:center;min-width:92px;}
+.mstat-lbl{font-family:'Inter',sans-serif;font-size:7px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;}
+.mstat-row{display:flex;gap:6px;align-items:flex-end;justify-content:center;}
+.mstat-col{text-align:center;}
+.mstat-tag{font-family:'Inter',sans-serif;font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);}
+.mstat-val{font-family:'Inter',sans-serif;font-size:16px;font-weight:800;letter-spacing:1px;line-height:1.1;}
+.mstat-diff{font-size:10px;font-weight:700;padding-bottom:2px;letter-spacing:.5px;}
+
+/* ── MODAL CHAMP SECTION TITLE ── */
+.modal-sec-title{
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:12px;
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+}
+.modal-sec-sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  font-weight:400;
+  color:var(--text2);
+  letter-spacing:1px;
+}
+
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:var(--bg);z-index:100;}
+.ld-title{font-family:'Inter',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--gold);}
+.ld-dots{display:flex;gap:6px;}
+.ld-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:ldp 1.2s ease-in-out infinite;}
+.ld-dot:nth-child(2){animation-delay:.2s;}
+.ld-dot:nth-child(3){animation-delay:.4s;}
+@keyframes ldp{0%,80%,100%{opacity:.2;transform:scale(.8);}40%{opacity:1;transform:scale(1);}}
+#error-msg{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:var(--bg);z-index:100;flex-direction:column;gap:10px;}
+.err-icon{font-size:2rem;}
+.err-text{font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:2px;color:var(--red);}
+.err-sub{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text2);}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ld-title">Loading scoreboard</div>
+  <div class="ld-dots"><div class="ld-dot"></div><div class="ld-dot"></div><div class="ld-dot"></div></div>
+</div>
+<div id="error-msg">
+  <div class="err-icon">&#9888;&#65039;</div>
+  <div class="err-text">No data available</div>
+  <div class="err-sub">Process at least one series first</div>
+</div>
+
+<!-- Modal soloq individual -->
+<div id="soloq-modal">
+  <div class="modal-inner">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modal-title">&#8212;</div>
+      <button class="modal-close" onclick="closeSoloqModal()">&#10005;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="hdr">
+    <div id="hdr-logo" class="hdr-logo-ph">&#9876;</div>
+    <div class="hdr-info">
+      <div class="hdr-name" id="hdr-name">&#8212;</div>
+      <div class="hdr-meta" id="hdr-meta">&#8212;</div>
+    </div>
+    <div class="hdr-record">
+      <div class="rec-item">
+        <div class="rec-val" id="rec-w" style="color:var(--green)">&#8212;</div>
+        <div class="rec-lbl">WINS</div>
+      </div>
+      <div style="color:var(--border2);font-size:1.2rem;">&#8212;</div>
+      <div class="rec-item">
+        <div class="rec-val" id="rec-l" style="color:var(--red)">&#8212;</div>
+        <div class="rec-lbl">LOSSES</div>
+      </div>
+      <div style="width:1px;height:28px;background:var(--border2);margin:0 4px;"></div>
+      <div class="rec-item">
+        <div class="rec-val" id="rec-wr" style="color:var(--gold2)">&#8212;</div>
+        <div class="rec-lbl">WIN RATE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- Game stats -->
+    <div>
+      <div class="sec">GENERAL STATS <span class="sec-accent">·</span> AVERAGES PER GAME</div>
+      <div class="gstats-grid" id="gstats-wrap" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Roster -->
+    <div>
+      <div class="sec">ROSTER <span class="sec-accent">·</span> AVERAGES PER GAME <span style="font-size:.5rem;color:var(--gold);margin-left:8px;">· CLICK TO VIEW SOLOQ</span></div>
+      <div class="players" id="roster-wrap" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Objectives -->
+    <div>
+      <div class="sec">OBJECTIVES <span class="sec-accent">·</span> % OVER TOTAL GAMES</div>
+      <div class="obj-grid" id="obj-wrap" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Side stats -->
+    <div>
+      <div class="sec">SIDE PERFORMANCE</div>
+      <div class="side-grid" id="side-wrap" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Lane Diff -->
+    <div>
+      <div class="sec">LANE DIFF <span class="sec-accent">·</span> AVERAGES @15MIN + PLATE GOLD</div>
+      <div class="lanediff-grid" id="lanediff-wrap" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Soloq Tracker -->
+    <div>
+      <div class="sec">SOLOQ TRACKER <span class="sec-accent">·</span> LAST 14 DAYS · MAX 40 IN ROLE</div>
+      <div id="soloq-wrap" style="margin-top:10px;">
+        <div id="soloq-progress" style="display:none;">
+          <div class="sq-prog-title">LOADING SOLOQ DATA — RIOT API (may take 2-3 min)</div>
+          <div class="sq-prog-bar-wrap"><div class="sq-prog-bar-fill" id="sq-prog-fill" style="width:0%"></div></div>
+          <div class="sq-prog-players" id="sq-prog-players"></div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);" id="soloq-placeholder">Waiting for soloq data...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const FLASK = 'http://localhost:5000';
+let DD = '', CK = {};
+
+const soloqCache = {};
+let soloqTeamTag = '';
+let rosterRef    = [];
+
+async function loadDD() {
+  try {
+    const v = await (await fetch('https://ddragon.leagueoflegends.com/api/versions.json')).json();
+    DD = 'https://ddragon.leagueoflegends.com/cdn/' + v[0];
+    const d = await (await fetch(DD + '/data/en_US/champion.json')).json();
+    Object.entries(d.data).forEach(([k, v]) => CK[v.name] = k);
+  } catch(e) {}
+}
+
+function champSrc(n) {
+  if (!DD || !n) return '';
+  return DD + '/img/champion/' + (CK[n] || n.replace(/[' .]/g,'')) + '.png';
+}
+
+function roleLabel(role) {
+  const m = {top:'TOP',jungle:'JGL',mid:'MID',middle:'MID',bottom:'ADC',adc:'ADC',support:'SUP'};
+  return m[role] || (role||'').toUpperCase().slice(0,3) || '?';
+}
+
+function roleClass(role) {
+  if (!role) return '';
+  if (role.includes('top'))     return 'role-top';
+  if (role.includes('jungle'))  return 'role-jungle';
+  if (role.includes('mid'))     return 'role-mid';
+  if (role.includes('bottom') || role.includes('adc')) return 'role-bottom';
+  if (role.includes('support')) return 'role-support';
+  return '';
+}
+
+function roleColor(role) {
+  const m = {top:'var(--top)',jungle:'var(--jgl)',mid:'var(--mid)',middle:'var(--mid)',
+             bottom:'var(--adc)',adc:'var(--adc)',support:'var(--sup)'};
+  return m[role] || 'var(--text)';
+}
+
+function pct(n)        { return Number(n).toFixed(2) + '%'; }
+function fmt(n, dec=2) { return Number(n).toFixed(dec); }
+
+// ── GAME STATS ────────────────────────────────────────────────────────────────
+function renderGameStats(data) {
+  const wrap = document.getElementById('gstats-wrap');
+  const obj  = data.objectives || {};
+  const gs   = data.game_stats || {};
+  const items = [
+    { icon:'&#127984;', lbl:'Towers / game',       val: gs.avg_towers      != null ? Number(gs.avg_towers).toFixed(1) + ' towers' : '&#8212;' },
+    { icon:'&#128176;', lbl:'Plate gold / game',   val: gs.avg_plates_gold != null ? Math.round(gs.avg_plates_gold) + 'g' : '&#8212;' },
+    { icon:'&#129408;', lbl:'First crab %',        val: gs.first_scuttler  != null ? pct(gs.first_scuttler) : '&#8212;' },
+    { icon:'&#128081;', lbl:'Baron %',              val: obj.baron           ? pct(obj.baron.pct) : '&#8212;' },
+  ];
+  items.forEach(({ icon, lbl, val }) => {
+    const c = document.createElement('div');
+    c.className = 'gstat-card';
+    c.innerHTML = '<div class="gstat-icon">' + icon + '</div><div><div class="gstat-val">' + val + '</div><div class="gstat-lbl">' + lbl + '</div></div>';
+    wrap.appendChild(c);
+  });
+}
+
+// ── ROSTER ────────────────────────────────────────────────────────────────────
+function renderRoster(roster) {
+  const wrap = document.getElementById('roster-wrap');
+  const hdr  = document.createElement('div');
+  hdr.style.cssText = 'display:grid;grid-template-columns:26px 44px 150px 150px 90px 80px 80px 80px;padding:2px 0;margin-bottom:2px;';
+  const HS = "text-align:center;font-family:'JetBrains Mono',monospace;font-size:.48rem;color:var(--text2);letter-spacing:1px;display:flex;align-items:center;justify-content:center;";
+  hdr.innerHTML = '<div></div><div></div><div></div>' +
+    '<div style="' + HS + '">K / D / A</div>' +
+    '<div style="' + HS + '">KDA</div>' +
+    '<div style="' + HS + '">AVG CS</div>' +
+    '<div style="' + HS + '">K+A/G</div>' +
+    '<div style="' + HS + '">KP%</div>';
+  wrap.appendChild(hdr);
+
+  roster.forEach(p => {
+    const card = document.createElement('div');
+    const rc   = roleClass(p.role);
+    card.className    = 'pcard ' + rc;
+    const nick        = (p.playerName || '').split(' ').pop() || p.playerName;
+    card.dataset.nick = nick.toLowerCase();
+
+    const champs     = p.champions || [];
+    const champsHtml = champs.slice(0,5).map(c =>
+      '<div class="cico" title="' + c + '"><img src="' + champSrc(c) + '" onerror="this.style.display=\'none\'" alt="' + c + '"></div>'
+    ).join('') + (champs.length > 5 ? '<div class="cico-more">+' + (champs.length-5) + '</div>' : '');
+
+    const kda    = Number(p.kda);
+    const kdaStr = Number(p.avg_deaths) == 0 ? '&#8734;' : fmt(kda);
+    const kdaCol = kda >= 5 ? 'var(--green)' : kda >= 3 ? 'var(--gold2)' : kda >= 2 ? 'var(--text)' : 'var(--red)';
+    const kag    = fmt(Number(p.avg_kills) + Number(p.avg_assists));
+    const kpPct  = p.avg_kp_pct != null ? fmt(p.avg_kp_pct) + '%' : '&#8212;';
+
+    card.innerHTML =
+      '<div class="pc-role-bar">' + roleLabel(p.role) + '</div>' +
+      '<div class="pc-champs">' + champsHtml + '</div>' +
+      '<div class="pc-name-cell">' +
+        '<div class="pc-name">' + nick + '</div>' +
+        '<div class="pc-games">' + p.games + ' games</div>' +
+        '<div class="pc-sq-status" id="sq-status-' + nick.toLowerCase() + '">soloq loading&#8230;</div>' +
+      '</div>' +
+      '<div class="pc-kda-cell">' +
+        '<div class="kda-nums">' +
+          '<span class="k">' + fmt(p.avg_kills) + '</span>' +
+          '<span style="color:var(--text2);font-size:.7rem;"> / </span>' +
+          '<span class="d">' + fmt(p.avg_deaths) + '</span>' +
+          '<span style="color:var(--text2);font-size:.7rem;"> / </span>' +
+          '<span class="a">' + fmt(p.avg_assists) + '</span>' +
+        '</div>' +
+        '<div class="sl">K / D / A</div>' +
+      '</div>' +
+      '<div class="pc-stat"><div class="sv" style="color:' + kdaCol + ';font-size:1.15rem;">' + kdaStr + '</div><div class="sl">KDA</div></div>' +
+      '<div class="pc-stat"><div class="sv">' + fmt(p.avg_cs) + '</div><div class="sl">CS/game</div></div>' +
+      '<div class="pc-stat"><div class="sv" style="color:var(--green);">' + kag + '</div><div class="sl">K+A/game</div></div>' +
+      '<div class="pc-stat"><div class="sv" style="color:var(--blue);">' + kpPct + '</div><div class="sl">KP%</div></div>';
+
+    card.addEventListener('click', () => openSoloqModal(p));
+    wrap.appendChild(card);
+  });
+}
+
+// ── OBJECTIVES ────────────────────────────────────────────────────────────────
+function renderObjectives(obj) {
+  const wrap = document.getElementById('obj-wrap');
+  const OBJ_DEF = [
+    {key:'wins',          lbl:'Win Rate',       col:'var(--green)'},
+    {key:'firstBlood',    lbl:'First Blood',    col:'var(--red)'},
+    {key:'firstTower',    lbl:'First Tower',    col:'var(--gold)'},
+    {key:'firstScuttler', lbl:'First Scuttler', col:'#26c6da'},
+    {key:'herald',        lbl:'Herald',         col:'var(--gold2)'},
+    {key:'firstVoidgrub', lbl:'First Voidgrub', col:'var(--orange)'},
+    {key:'voidgrubs',     lbl:'Any Voidgrubs',  col:'var(--orange)'},
+    {key:'dragon1',       lbl:'Dragon 1',       col:'var(--blue)'},
+    {key:'dragon2',       lbl:'Dragon 2',       col:'#29b6f6'},
+    {key:'baron',         lbl:'Baron',          col:'var(--sup)'},
+  ];
+  OBJ_DEF.forEach(({key, lbl, col}) => {
+    const d    = obj[key] || {wins:0, total:0, pct:0};
+    const card = document.createElement('div');
+    card.className = 'obj-card';
+    card.innerHTML =
+      '<div class="obj-pct" style="color:' + col + '">' + pct(d.pct) + '</div>' +
+      '<div class="obj-lbl">' + lbl + '</div>' +
+      '<div class="obj-sub">' + d.wins + ' / ' + d.total + ' partidas</div>' +
+      '<div class="obj-bar"><div class="obj-fill" style="width:' + d.pct + '%;background:' + col + '"></div></div>';
+    wrap.appendChild(card);
+  });
+}
+
+// ── LANE DIFFS ────────────────────────────────────────────────────────────────
+function renderLaneDiffs(diffs) {
+  const wrap = document.getElementById('lanediff-wrap');
+  if (!wrap) return;
+  if (!diffs || !Object.keys(diffs).length) {
+    wrap.innerHTML = '<div style="color:var(--text2);font-family:\'JetBrains Mono\',monospace;font-size:.6rem;">No lane diff data</div>';
+    return;
+  }
+  const ROLE_ORD = ['top','jungle','mid','middle','bottom','adc','support'];
+  Object.keys(diffs).sort((a,b) =>
+    (ROLE_ORD.indexOf(a)===-1?99:ROLE_ORD.indexOf(a)) -
+    (ROLE_ORD.indexOf(b)===-1?99:ROLE_ORD.indexOf(b))
+  ).forEach(role => {
+    const d    = diffs[role];
+    const col  = roleColor(role);
+    const cs   = Number(d.avg_cs_diff    || 0);
+    const g    = Number(d.avg_gold_diff  || 0);
+    const pg   = d.avg_plate_gold != null ? Math.round(d.avg_plate_gold) : null;
+    // Badge: jungla siempre "GANKS" (oro de placas = presencia en map), resto "LANE"
+    const isJgl   = role === 'jungle';
+    const badgeCls = isJgl ? 'gank' : 'lane';
+    const badgeTxt = isJgl ? 'GANKS' : 'LANE';
+
+    const plateHtml = pg != null
+      ? '<div class="ld-divider"></div>' +
+        '<div>' +
+          '<div class="ld-plate-val">' + pg + 'g' +
+            '<span class="ld-plate-badge ' + badgeCls + '">' + badgeTxt + '</span>' +
+          '</div>' +
+          '<div class="ld-plate-lbl">plate gold / game</div>' +
+        '</div>'
+      : '';
+
+    const card = document.createElement('div');
+    card.className = 'ld-card';
+    card.innerHTML =
+      '<div class="ld-role" style="color:' + col + '">' + roleLabel(role) + '</div>' +
+      '<div class="ld-stats">' +
+        '<div><div class="ld-val" style="color:' + (cs>=0?'var(--green)':'var(--red)') + '">' + (cs>=0?'+':'') + cs.toFixed(1) + '</div><div class="ld-lbl">CS @15</div></div>' +
+        '<div><div class="ld-val" style="color:' + (g>=0?'var(--gold2)':'var(--red)') + '">' + (g>=0?'+':'') + Math.round(g) + 'g</div><div class="ld-lbl">GOLD @15</div></div>' +
+      '</div>' +
+      plateHtml;
+    wrap.appendChild(card);
+  });
+}
+
+// ── SIDE STATS ────────────────────────────────────────────────────────────────
+function renderSides(side_obj) {
+  const wrap = document.getElementById('side-wrap');
+  ['blue','red'].forEach(side => {
+    const s    = side_obj[side] || {games:0, wins:0, pct:0};
+    const col  = side === 'blue' ? 'blue' : 'red';
+    const cVar = side === 'blue' ? 'var(--blue)' : 'var(--red)';
+    const card = document.createElement('div');
+    card.className = 'side-card';
+    const rowsHtml = [
+      {lbl:'Games',    val:s.games,    bar:false},
+      {lbl:'Wins',     val:s.wins,     bar:false},
+      {lbl:'Win Rate', val:pct(s.pct), bar:true, pct:s.pct, color:cVar},
+    ].map(r =>
+      '<div class="side-row"><span class="side-key">' + r.lbl + '</span><span class="side-val">' + r.val + '</span>' +
+      (r.bar ? '<div class="side-bar-wrap"><div class="side-bar-fill" style="width:' + r.pct + '%;background:' + r.color + '"></div></div>' : '<div style="flex:2"></div>') +
+      '</div>'
+    ).join('');
+    card.innerHTML = '<div class="side-hdr ' + col + '">' + side.toUpperCase() + ' SIDE</div><div class="side-body">' + rowsHtml + '</div>';
+    wrap.appendChild(card);
+  });
+}
+
+// ── SOLOQ ────────────────────────────────────────────────────────────────────
+
+async function loadSoloqAllPlayers(teamTag, days) {
+  days = days || 30;
+  if (!teamTag) { setSoloqPlaceholder('No team_tag — check players.csv'); return; }
+  soloqTeamTag = teamTag;
+
+  // ── Comprobar localStorage ────────────────────────────────────────────────
+  const CACHE_KEY = 'soloq_cache_' + teamTag;
+  const CACHE_TTL = 60 * 60; // 1 hora en segundos
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && cached.cached_at && (Date.now()/1000 - cached.cached_at) < CACHE_TTL) {
+      console.log('soloq: serving from localStorage');
+      cached.players.forEach(p => {
+        const nick = (p.name || '').split(' ').pop().toLowerCase();
+        soloqCache[nick] = p;
+        updatePcardStatus(nick, p);
+      });
+      renderSoloqGrid(cached.players);
+      return;
+    }
+  } catch(e) {}
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const progBox     = document.getElementById('soloq-progress');
+  const placeholder = document.getElementById('soloq-placeholder');
+  const progFill    = document.getElementById('sq-prog-fill');
+  const progPips    = document.getElementById('sq-prog-players');
+
+  if (placeholder) placeholder.style.display = 'none';
+  if (progBox)     progBox.style.display      = 'flex';
+
+  const nicks = rosterRef.map(p => (p.playerName || '').split(' ').pop());
+  nicks.forEach(n => {
+    const pip = document.createElement('div');
+    pip.className   = 'sq-prog-pip loading';
+    pip.id          = 'sqpip-' + n.toLowerCase();
+    pip.textContent = n;
+    progPips.appendChild(pip);
+  });
+
+  let data;
+  try {
+    const r = await fetch(FLASK + '/api/soloq_tracker?team=' + encodeURIComponent(teamTag));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    data = await r.json();
+  } catch(e) {
+    if (progBox) progBox.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'block';
+    setSoloqPlaceholder('Soloq error: ' + e.message);
+    return;
+  }
+
+  progFill.style.width = '100%';
+
+  if (data.error || !data.players || !data.players.length) {
+    if (progBox) progBox.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'block';
+    setSoloqPlaceholder(data.error || 'No players for: ' + teamTag);
+    return;
+  }
+
+  // ── Guardar en localStorage ───────────────────────────────────────────────
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch(e) {}
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const daysEl = document.getElementById('soloq-days');
+  if (daysEl) daysEl.textContent = data.days || 30;
+
+  data.players.forEach(p => {
+    const nick = (p.name || '').split(' ').pop().toLowerCase();
+    soloqCache[nick] = p;
+    const pip = document.getElementById('sqpip-' + nick);
+    if (pip) pip.className = (p.error && !p.top_soloq) ? 'sq-prog-pip error' : 'sq-prog-pip done';
+    updatePcardStatus(nick, p);
+  });
+
+  setTimeout(function() {
+    if (progBox) progBox.style.display = 'none';
+    renderSoloqGrid(data.players);
+  }, 400);
+}
+
+function setSoloqPlaceholder(msg) {
+  const el = document.getElementById('soloq-placeholder');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+function updatePcardStatus(nickLower, sqData) {
+  const el = document.getElementById('sq-status-' + nickLower);
+  if (!el) return;
+  if (sqData.error && !sqData.top_soloq) {
+    el.style.color = 'var(--red)';
+    el.textContent = sqData.error;
+    return;
+  }
+  const wrCol = sqData.wr >= 55 ? 'var(--green)' : sqData.wr >= 45 ? 'var(--text2)' : 'var(--red)';
+  el.style.color = wrCol;
+  el.textContent = (sqData.ranked || 'Unranked') + ' \u00b7 ' + sqData.wr + '%WR';
+}
+
+function renderSoloqGrid(players) {
+  const wrap = document.getElementById('soloq-wrap');
+  wrap.innerHTML = '';
+
+  // Sort by role
+  const ROLE_ORD = ['top','jungle','mid','middle','bottom','adc','support'];
+  players = [...players].sort((a, b) => {
+    const ai = ROLE_ORD.indexOf((a.role || '').toLowerCase());
+    const bi = ROLE_ORD.indexOf((b.role || '').toLowerCase());
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  const legend = document.createElement('div');
+  legend.style.cssText = "display:flex;gap:12px;margin-bottom:6px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2);";
+  legend.innerHTML =
+    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--green);margin-right:4px;vertical-align:middle;"></span>Plays in comp</span>' +
+    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--orange);margin-right:4px;vertical-align:middle;"></span>New (soloq only)</span>';
+  wrap.appendChild(legend);
+
+  const grid = document.createElement('div');
+  grid.className = 'sq-grid';
+
+  players.forEach(p => {
+    if (p.error && !p.top_soloq) {
+      const errCard = document.createElement('div');
+      errCard.className   = 'sq-card';
+      errCard.style.padding = '8px 12px';
+      errCard.innerHTML = '<span style="font-weight:600;color:var(--gold2);">' + p.name + '</span>' +
+        '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--red);margin-left:8px;">' + p.error + '</span>';
+      grid.appendChild(errCard);
+      return;
+    }
+
+    const rc          = roleClass((p.role || '').toLowerCase());
+    const card        = document.createElement('div');
+    card.className    = 'sq-card';
+    const soloqChamps = p.top_soloq || [];
+    const compPool    = new Set(p.comp_pool || []);
+    const newPicks    = new Set(p.new_picks || []);
+
+    const champsHtml = soloqChamps.slice(0, 8).map(c => {
+      const isNew  = newPicks.has(c.champ);
+      const isComp = compPool.has(c.champ);
+      const wrC    = c.wr >= 55 ? 'var(--green)' : c.wr >= 45 ? 'var(--text2)' : 'var(--red)';
+      const icoC   = isComp ? 'sq-champ-ico in-comp' : isNew ? 'sq-champ-ico is-new' : 'sq-champ-ico';
+      return '<div class="sq-champ" title="' + c.champ + ' \u2014 ' + c.games + 'G ' + c.wr + '%WR ' + c.kda_ratio + 'KDA">' +
+        '<div class="' + icoC + '">' +
+          '<img src="' + champSrc(c.champ) + '" onerror="this.style.display=\'none\'" alt="' + c.champ + '">' +
+          (isNew ? '<div class="sq-new-badge">N</div>' : '') +
+        '</div>' +
+        '<div class="sq-champ-wr" style="color:' + wrC + '">' + c.wr + '%</div>' +
+        '</div>';
+    }).join('');
+
+    const newArr  = p.new_picks || [];
+    const newHtml = newArr.length
+      ? '<div class="sq-new-section"><span class="sq-new-lbl">&#128260; Practicing:</span>' +
+        newArr.slice(0,5).map(c => '<span class="sq-new-chip">' + c + '</span>').join('') +
+        '</div>'
+      : '';
+
+    const wrCol = p.wr >= 55 ? 'var(--green)' : p.wr >= 45 ? 'var(--text2)' : 'var(--red)';
+
+    // Sin columna de forma — sq-hdr tiene 4 cols
+    card.innerHTML =
+      '<div class="sq-hdr ' + rc + '">' +
+        '<div class="sq-role-bar">' + roleLabel((p.role||'').toLowerCase()) + '</div>' +
+        '<div class="sq-player">' +
+          '<div class="sq-name">' + p.name + '</div>' +
+          '<div class="sq-riot-id">' + p.riot_id + '</div>' +
+        '</div>' +
+        '<div class="sq-ranked">' +
+          '<div class="sq-rank-val">' + (p.ranked || 'Unranked') + '</div>' +
+          '<div class="sq-rank-sub" style="color:' + wrCol + '">' + p.wins + 'W ' + p.losses + 'L \u00b7 ' + p.wr + '%WR · ' + (p.total || 0) + 'G season</div>' +
+        '</div>' +
+        '<div class="sq-champs">' + champsHtml + '</div>' +
+      '</div>' + newHtml;
+
+    grid.appendChild(card);
+  });
+
+  wrap.appendChild(grid);
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────────────
+
+function closeSoloqModal() {
+  document.getElementById('soloq-modal').style.display = 'none';
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSoloqModal(); });
+
+function openSoloqModal(compPlayer) {
+  const nick  = (compPlayer.playerName || '').split(' ').pop();
+  const sq    = soloqCache[nick.toLowerCase()];
+  const modal = document.getElementById('soloq-modal');
+  const body  = document.getElementById('modal-body');
+  const title = document.getElementById('modal-title');
+
+  title.textContent = nick + ' \u00b7 Soloq vs Competition';
+  modal.style.display = 'flex';
+
+  if (!sq) {
+    // Intentar buscar por nombre completo o variantes
+    const nickVariants = [nick.toLowerCase(), (compPlayer.playerName||'').toLowerCase()];
+    for (const v of nickVariants) {
+      if (soloqCache[v]) { renderModalContent(body, soloqCache[v], compPlayer); return; }
+    }
+    body.innerHTML = '<div style="padding:40px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:.7rem;color:var(--text2);">' +
+      (soloqTeamTag ? 'Soloq data still loading\u2026 (reload the scoreboard if it already finished)' : 'No soloq data \u2014 configure RIOT_API_KEY and players.csv') +
+      '</div>';
+    return;
+  }
+
+  if (sq.error && !sq.top_soloq) {
+    body.innerHTML = '<div style="padding:40px;text-align:center;font-family:\'JetBrains Mono\',monospace;font-size:.7rem;color:var(--red);">' + sq.error + '</div>';
+    return;
+  }
+
+  renderModalContent(body, sq, compPlayer);
+}
+
+function renderModalContent(body, sq, compPlayer) {
+  const compPool = new Set(compPlayer.champions || []);
+  const soloq    = sq.top_soloq || [];
+  const wrCol    = sq.wr >= 55 ? 'var(--green)' : sq.wr >= 45 ? 'var(--text2)' : 'var(--red)';
+
+  // ── Stat blocks: typography style "TOP/JGL/MID" ──────────────────────────
+  function statBlock(lbl, compVal, sqVal) {
+    const c    = Number(compVal || 0);
+    const s    = Number(sqVal   || 0);
+    const diff = s - c;
+    const dStr = (diff >= 0 ? '+' : '') + diff.toFixed(2);
+    const dCol = diff >= 0 ? 'var(--green)' : 'var(--red)';
+    return '<div class="mstat-block">' +
+      '<div class="mstat-lbl">' + lbl + '</div>' +
+      '<div class="mstat-row">' +
+        '<div class="mstat-col">' +
+          '<div class="mstat-tag">COMP</div>' +
+          '<div class="mstat-val" style="color:var(--text);">' + c.toFixed(2) + '</div>' +
+        '</div>' +
+        '<div class="mstat-diff" style="color:' + dCol + ';">' + dStr + '</div>' +
+        '<div class="mstat-col">' +
+          '<div class="mstat-tag" style="color:var(--blue);">SQ</div>' +
+          '<div class="mstat-val" style="color:var(--blue);">' + s.toFixed(2) + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  const statsHtml = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">' +
+    statBlock('KDA',     compPlayer.kda,        sq.avg_kda     || 0) +
+    statBlock('KILLS',   compPlayer.avg_kills,   sq.avg_kills   || 0) +
+    statBlock('DEATHS',  compPlayer.avg_deaths,  sq.avg_deaths  || 0) +
+    statBlock('ASSISTS', compPlayer.avg_assists, sq.avg_assists || 0) +
+    statBlock('CS/G',    compPlayer.avg_cs,      sq.avg_cs      || 0) +
+    '</div>';
+
+  // ── SOLOQ CHAMPS title (large) ─────────────────────────────────────────
+  const totalRanked  = sq.total        || 0;
+  const validMatches = sq.valid_matches || 0;
+
+  const champsHtml = '<div style="margin-bottom:20px;">' +
+    '<div class="modal-sec-title">Soloq Champions' +
+      '<span class="modal-sec-sub">' + totalRanked + ' ranked this season · ' + validMatches + ' analyzed</span>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+    soloq.map(c => {
+      const isComp = compPool.has(c.champ);
+      const bCol   = isComp ? 'var(--green)' : 'var(--orange)';
+      const wrC    = c.wr >= 55 ? 'var(--green)' : c.wr >= 45 ? 'var(--text2)' : 'var(--red)';
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;background:var(--panel2);border:1px solid ' + bCol + ';border-radius:6px;min-width:72px;">' +
+        '<div style="position:relative;">' +
+          '<div style="width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid ' + bCol + ';">' +
+            '<img src="' + champSrc(c.champ) + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' +
+          '</div>' +
+          (!isComp ? '<div style="position:absolute;top:-3px;right:-3px;background:var(--orange);color:#000;font-size:7px;font-weight:800;border-radius:50%;width:13px;height:13px;display:flex;align-items:center;justify-content:center;">N</div>' : '') +
+        '</div>' +
+        '<div style="font-family:\'Barlow Condensed\',\'Inter\',sans-serif;font-size:11px;font-weight:700;color:var(--text);text-align:center;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:1px;text-transform:uppercase;">' + c.champ + '</div>' +
+'<div style="font-family:\'Barlow Condensed\',\'Inter\',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:' + wrC + ';">' + c.wr + '% WR</div>' +
+'<div style="font-family:\'Barlow Condensed\',\'Inter\',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text2);">' + c.games + 'G · ' + c.kda_ratio + ' KDA</div>' +
+        '<div style="font-family:\'Inter\',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;color:' + bCol + ';">' + (isComp ? '\u2713 COMP' : '\u2605 NEW') + '</div>' +
+        '</div>';
+    }).join('') +
+    '</div></div>';
+
+  // ── Competition pool ───────────────────────────────────────────────────────
+  const compPoolArr  = Array.from(compPool);
+  const compPoolHtml = compPoolArr.length ? '<div style="margin-bottom:16px;">' +
+    '<div class="modal-sec-title" style="font-size:11px;">Competition Pool</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+    compPoolArr.map(c =>
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">' +
+        '<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid var(--green);">' +
+          '<img src="' + champSrc(c) + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' +
+        '</div>' +
+        '<div style="font-size:8px;color:var(--text2);text-align:center;max-width:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c + '</div>' +
+      '</div>'
+    ).join('') +
+    '</div></div>' : '';
+
+  // ── Header del modal: elo + record ────────────────────────────────────────
+  body.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border);">' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.6rem;color:var(--text2);">' + (sq.riot_id||'') + '</div>' +
+      '<div style="font-family:\'Inter\',sans-serif;font-size:.85rem;font-weight:800;letter-spacing:1px;color:var(--text);">' + (sq.ranked||'Unranked') + '</div>' +
+      '<div style="font-family:\'JetBrains Mono\',monospace;font-size:.6rem;color:' + wrCol + ';">' + sq.wins + 'W ' + sq.losses + 'L \u00b7 ' + sq.wr + '%WR</div>' +
+    '</div>' +
+    statsHtml + champsHtml + compPoolHtml;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init() {
+  if (window._soloqInitDone) return;
+  window._soloqInitDone = true;
+  let data;
+  try {
+    await loadDD();
+    let r;
+    try {
+      // Intenta Flask primero
+      r = await fetch(FLASK + '/api/team_scoreboard');
+      if (!r.ok) throw new Error('flask unavailable');
+    } catch(e) {
+      // Fallback to static JSON
+      r = await fetch('./game_data.json');
+    }
+    if (!r.ok) throw new Error('no data');
+    data = await r.json();
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-msg').style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('hdr-name').textContent = data.our_name || 'Team';
+  document.getElementById('hdr-meta').textContent =
+    data.total_series + ' serie' + (data.total_series !== 1 ? 's' : '') + ' \u00b7 ' + data.total_games + ' games';
+
+  const logoEl = document.getElementById('hdr-logo');
+  if (data.team_logo) {
+    const img     = document.createElement('img');
+    img.src       = data.team_logo;
+    img.className = 'hdr-logo';
+    img.alt       = data.our_name;
+    img.onerror   = function() { logoEl.innerHTML = '&#9876;'; };
+    logoEl.replaceWith(img);
+  }
+
+  const wins = (data.objectives && data.objectives.wins) || {};
+  const w  = wins.wins  || 0;
+  const t  = wins.total || data.total_games || 1;
+  const l  = t - w;
+  const wr = t > 0 ? (w / t * 100).toFixed(2) : '0.00';
+  document.getElementById('rec-w').textContent  = w;
+  document.getElementById('rec-l').textContent  = l;
+  document.getElementById('rec-wr').textContent = wr + '%';
+
+  rosterRef = data.roster || [];
+
+  renderGameStats(data);
+  renderRoster(rosterRef);
+  renderObjectives(data.objectives || {});
+  renderSides(data.side_obj        || {});
+  renderLaneDiffs(data.lane_diffs  || {});
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display     = 'block';
+
+  const teamTag = data.team_tag || data.our_name || '';
+  loadSoloqAllPlayers(teamTag);
+}
+
+init();
+</script>
+</body>
+</html>

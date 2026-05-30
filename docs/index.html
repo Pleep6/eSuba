@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LoL Scouting — War Room</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Barlow+Condensed:wght@600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#c89b3c;--gold2:#f0d07a;
+  --dark:#08090c;--panel:#0d1117;--panel2:#111820;--border:#1a2330;--text:#9ab0c0;--text2:#4a6070;
+  --blue:#4fc3f7;--green:#66bb6a;--orange:#ff9800;--purple:#ce93d8;--red:#ef5350;
+}
+html,body{height:100vh;width:100vw;overflow:hidden;background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;}
+
+/* ── TOPBAR ── */
+#topbar{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;height:40px;background:var(--panel);border-bottom:1px solid var(--border);
+}
+.tb-left{display:flex;align-items:center;gap:10px;}
+.tb-mark{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:800;letter-spacing:5px;text-transform:uppercase;color:var(--gold);}
+.tb-sep{width:1px;height:20px;background:var(--border);}
+.tb-sub{font-family:'Share Tech Mono',monospace;font-size:.56rem;color:var(--text2);letter-spacing:2px;}
+.tb-hint{font-family:'Share Tech Mono',monospace;font-size:.56rem;color:#2a3840;letter-spacing:1px;}
+
+/* ── MAIN LAYOUT ── */
+#main{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto;}
+#main::-webkit-scrollbar{width:4px;}
+#main::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── SECTION HEADERS ── */
+.section-hdr{
+  flex-shrink:0;display:flex;align-items:center;gap:10px;
+  padding:8px 16px;background:var(--panel2);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:5;
+}
+.section-label{
+  font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:800;
+  letter-spacing:5px;text-transform:uppercase;
+}
+.section-label.global{color:var(--gold);}
+.section-label.series{color:var(--blue);}
+.section-count{
+  font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--text2);
+  border:1px solid var(--border);padding:1px 6px;border-radius:2px;letter-spacing:1px;
+}
+
+/* ── GLOBAL GRID ── */
+.global-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border-bottom:1px solid var(--border);
+}
+
+/* ── SERIES SECTION ── */
+.series-block{border-bottom:2px solid var(--border);}
+.series-name-bar{
+  display:flex;align-items:center;gap:10px;padding:7px 16px;
+  background:#0a0c12;border-bottom:1px solid var(--border);
+}
+.series-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0;}
+.series-name{
+  font-family:'Barlow Condensed',sans-serif;font-size:.78rem;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;color:var(--blue);
+}
+.series-date{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--text2);margin-left:auto;}
+.series-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+}
+
+/* ── CARDS ── */
+.card{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;cursor:pointer;background:var(--dark);
+  transition:background .18s;position:relative;overflow:hidden;
+  border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:16px 12px;min-height:130px;
+}
+.card:last-child{border-right:none;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;transition:height .18s;}
+.card:hover::before{height:3px;}
+.card:hover{background:#0b0f16;}
+.card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.007) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.007) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+
+/* accent colors */
+.acc-gold::before{background:var(--gold);}
+.acc-gold2::before{background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));}
+.acc-blue::before{background:var(--blue);}
+.acc-green::before{background:var(--green);}
+.acc-orange::before{background:var(--orange);}
+.acc-purple::before{background:var(--purple);}
+.acc-red::before{background:var(--red);}
+
+.card-tag{font-family:'Share Tech Mono',monospace;font-size:.44rem;letter-spacing:2px;text-transform:uppercase;color:#2a3840;border:1px solid #181f28;padding:2px 6px;border-radius:1px;position:relative;z-index:1;}
+.card-icon{font-size:1.8rem;line-height:1;position:relative;z-index:1;}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;text-align:center;position:relative;z-index:1;}
+.acc-gold .card-title{color:var(--gold);}
+.acc-gold2 .card-title{color:var(--gold2);}
+.acc-blue .card-title{color:var(--blue);}
+.acc-green .card-title{color:var(--green);}
+.acc-orange .card-title{color:var(--orange);}
+.acc-purple .card-title{color:var(--purple);}
+.acc-red .card-title{color:var(--red);}
+
+.card-sub{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:#3a5060;letter-spacing:.5px;text-align:center;line-height:1.7;position:relative;z-index:1;}
+.card-status{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:1px;padding:2px 7px;border-radius:2px;position:relative;z-index:1;}
+.ok{color:var(--green);} .missing{color:var(--red);} .pending{color:#2a3840;}
+
+/* ── VIEWER ── */
+#viewer{display:none;position:fixed;inset:0;z-index:100;flex-direction:column;}
+#vbar{display:flex;align-items:center;gap:10px;padding:0 12px;height:36px;flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);}
+.back{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;transition:all .15s;user-select:none;}
+.back:hover{border-color:var(--gold);color:var(--gold);}
+#vtitle{font-size:.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);}
+.vsep{flex:1;}
+#vframe{flex:1;border:none;width:100%;height:100%;}
+
+/* ── FLOATING PDF BUTTON ── */
+#btn-pdf-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(102,187,106,.5);
+  background: rgba(10,14,18,.92);
+  color: #66bb6a;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 24px rgba(0,0,0,.5), 0 0 0 1px rgba(102,187,106,.1);
+  transition: all .15s;
+}
+#btn-pdf-float:hover {
+  background: rgba(102,187,106,.12);
+  border-color: #66bb6a;
+  box-shadow: 0 4px 32px rgba(102,187,106,.15), 0 0 0 1px rgba(102,187,106,.2);
+  transform: translateY(-2px);
+}
+#btn-pdf-float:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── MODAL ── */
+.modal{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.75);align-items:center;justify-content:center;}
+.modal-inner{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:24px 28px;min-width:280px;}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:16px;}
+.modal-btns{display:flex;flex-direction:column;gap:8px;}
+.modal-btn{background:transparent;border:1px solid var(--border);color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:8px 16px;border-radius:3px;cursor:pointer;transition:all .15s;text-align:left;}
+.modal-btn:hover{border-color:var(--red);color:var(--red);background:rgba(239,83,80,.06);}
+.modal-cancel{margin-top:12px;width:100%;background:transparent;border:1px solid var(--border);color:var(--text2);font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:6px;border-radius:3px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="tb-left">
+    <span style="font-size:1rem">⚔</span>
+    <span class="tb-mark">LOL SCOUTING</span>
+    <div class="tb-sep"></div>
+    <span class="tb-sub">WAR ROOM · GRID EVENTS ANALYZER</span>
+  </div>
+  <span class="tb-hint">ESC to go back · click to open</span>
+</div>
+
+<!-- FLOATING PDF BUTTON -->
+<button id="btn-pdf-float" onclick="exportPDF()">
+  📄 Export Opponent PDF
+</button>
+
+<!-- GAME REPORT MODAL -->
+<div id="gr-modal" class="modal">
+  <div class="modal-inner">
+    <div class="modal-title">📄 Game Report</div>
+    <div class="modal-btns" id="gr-buttons"></div>
+    <button class="modal-cancel" onclick="document.getElementById('gr-modal').style.display='none'">Cancel</button>
+  </div>
+</div>
+
+<div id="main">
+
+  <!-- ── GLOBAL SECTION ── -->
+  <div class="section-hdr">
+    <span class="section-label global">⚡ Season Analysis</span>
+    <span class="section-count" id="global-count">global · all series</span>
+  </div>
+  <div class="global-grid">
+
+    <div class="card acc-gold" onclick="open_('team_scoreboard.html','🏆 Team Scoreboard')">
+      <div class="card-tag">SEASON</div>
+      <div class="card-icon">🏆</div>
+      <div class="card-title">Team Scoreboard</div>
+      <div class="card-sub">KDA · CS · Gold · Champions<br>Objectives · Blue vs Red</div>
+      <div class="card-status pending" id="sSB">checking...</div>
+    </div>
+
+    <div class="card acc-gold2" onclick="open_('draft_analysis.html','📊 Draft Analysis')">
+      <div class="card-tag">SEASON</div>
+      <div class="card-icon">📊</div>
+      <div class="card-title">Draft Analysis</div>
+      <div class="card-sub">Pick/Ban rates · Slots<br>Versus · Player pool</div>
+      <div class="card-status pending" id="sDraftA">checking...</div>
+    </div>
+
+    <div class="card acc-purple" onclick="open_('series_support_wards_season.html','👁 Season Wards')">
+      <div class="card-tag">SEASON</div>
+      <div class="card-icon">👁</div>
+      <div class="card-title">Season Wards</div>
+      <div class="card-sub">Cumulative heatmap · Multi-series<br>Blue vs Red · By phase</div>
+      <div class="card-status pending" id="sWS">checking...</div>
+    </div>
+
+    <div class="card acc-blue" onclick="open_('jungle_analysis.html','🌲 Jungle Analysis')">
+      <div class="card-tag">SEASON</div>
+      <div class="card-icon">🌲</div>
+      <div class="card-title">Jungle Analysis</div>
+      <div class="card-sub">First clear · Common routes<br>First gank · Blue vs Red</div>
+      <div class="card-status pending" id="sJA">checking...</div>
+    </div>
+
+  </div>
+
+  <!-- ── SERIES SECTIONS (dynamically generated) ── -->
+  <div id="series-container"></div>
+
+</div>
+
+<!-- VIEWER -->
+<div id="viewer">
+  <div id="vbar">
+    <button class="back" onclick="closeV()">← Back</button>
+    <span id="vtitle"></span>
+    <span class="vsep"></span>
+    <span style="font-family:'Share Tech Mono',monospace;font-size:.54rem;color:#2a3840;">ESC to close</span>
+  </div>
+  <iframe id="vframe" src="" title="Viewer"></iframe>
+</div>
+
+<script>
+// ── GLOBAL CHECKS ────────────────────────────────────────────────────────────
+var globalChecks = [
+  {url:'team_scoreboard.html',             id:'sSB'},
+  {url:'draft_analysis.html',              id:'sDraftA'},
+  {url:'series_support_wards_season.html', id:'sWS'},
+  {url:'jungle_analysis.html',             id:'sJA'},
+];
+globalChecks.forEach(function(c){
+  fetch(c.url,{method:'HEAD'}).then(function(r){
+    var el=document.getElementById(c.id);
+    if(!el) return;
+    el.textContent=r.ok?'✓ ready':'✗ no data';
+    el.className='card-status '+(r.ok?'ok':'missing');
+  }).catch(function(){
+    var el=document.getElementById(c.id);
+    if(!el) return;
+    el.textContent='✗ no data';
+    el.className='card-status missing';
+  });
+});
+
+// ── SERIES DISCOVERY ─────────────────────────────────────────────────────────
+var SERIES_META = [
+  {file:'series_picks_bans.html',     icon:'📋', title:'Picks & Bans',    acc:'acc-gold2',  sub:'Draft · Fearless · Picks/Bans'},
+  {file:'series_jungle_pathing.html', icon:'🗺',  title:'Jungle Pathing', acc:'acc-orange', sub:'Routes · Objectives · Playback'},
+  {file:'series_support_wards.html',  icon:'👁',  title:'Support Wards',  acc:'acc-purple', sub:'Heatmap · Control · Stealth'},
+  {file:'series_game_stats.html',     icon:'📊',  title:'Game Stats',     acc:'acc-blue',   sub:'Objectives · Roster · Averages'},
+];
+
+function buildSeriesSection(dir, games) {
+  var container = document.getElementById('series-container');
+
+  var readable = dir.replace(/_/g,' ');
+  var datePart = '';
+  var dateMatch = dir.match(/(\d{2}-\d{2}-\d{4})$/);
+  if (dateMatch) {
+    datePart = dateMatch[1];
+    readable = dir.replace('_'+dateMatch[1],'').replace(/_/g,' ').trim();
+  }
+
+  var block = document.createElement('div');
+  block.className = 'series-block';
+
+  var nameBar = document.createElement('div');
+  nameBar.className = 'series-name-bar';
+  nameBar.innerHTML =
+    '<div class="series-dot"></div>' +
+    '<span class="series-name">' + readable + '</span>' +
+    (datePart ? '<span class="series-date">' + datePart + '</span>' : '');
+  block.appendChild(nameBar);
+
+  var grid = document.createElement('div');
+  grid.className = 'series-grid';
+
+  // Series files
+  SERIES_META.forEach(function(m) {
+    var card = document.createElement('div');
+    card.className = 'card ' + m.acc;
+    card.innerHTML =
+      '<div class="card-tag">SERIES</div>' +
+      '<div class="card-icon">' + m.icon + '</div>' +
+      '<div class="card-title">' + m.title + '</div>' +
+      '<div class="card-sub">' + m.sub + '</div>' +
+      '<div class="card-status pending" id="s_' + dir + '_' + m.file + '">checking...</div>';
+    var path = dir + '/' + m.file;
+    card.onclick = (function(p, t) { return function(){ open_(p, m.icon+' '+t); }; })(path, m.title);
+    grid.appendChild(card);
+
+    fetch(path, {method:'HEAD'}).then(function(r){
+      var el = document.getElementById('s_' + dir + '_' + m.file);
+      if (!el) return;
+      el.textContent = r.ok ? '✓ ready' : '✗ no data';
+      el.className = 'card-status ' + (r.ok ? 'ok' : 'missing');
+      if (!r.ok) card.style.opacity = '0.45';
+    }).catch(function(){
+      var el = document.getElementById('s_' + dir + '_' + m.file);
+      if (el) { el.textContent = '✗ no data'; el.className = 'card-status missing'; }
+      card.style.opacity = '0.45';
+    });
+  });
+
+  // Game Reports card
+  var grCard = document.createElement('div');
+  grCard.className = 'card acc-red';
+  grCard.innerHTML =
+    '<div class="card-tag">PER GAME</div>' +
+    '<div class="card-icon">📄</div>' +
+    '<div class="card-title">Game Report</div>' +
+    '<div class="card-sub">Scoreboard · Lane diff @15<br>Items · Kills · Objectives</div>' +
+    '<div class="card-status pending" id="sgr_' + dir + '">searching...</div>';
+
+  var foundGames = [];
+  var grChecks = [];
+  for (var g = 1; g <= 5; g++) {
+    (function(gn, d) {
+      var path = d + '/game_report_G' + gn + '.html';
+      grChecks.push(
+        fetch(path, {method:'HEAD'}).then(function(r){
+          if (r.ok) foundGames.push(gn);
+        }).catch(function(){})
+      );
+    })(g, dir);
+  }
+  Promise.all(grChecks).then(function(){
+    foundGames.sort(function(a,b){return a-b;});
+    var el = document.getElementById('sgr_' + dir);
+    if (!el) return;
+    if (foundGames.length) {
+      el.textContent = '✓ ' + foundGames.map(function(g){return 'G'+g;}).join(' · ');
+      el.className = 'card-status ok';
+    } else {
+      el.textContent = '✗ no data';
+      el.className = 'card-status missing';
+      grCard.style.opacity = '0.45';
+    }
+  });
+
+  grCard.onclick = (function(d, fg) {
+    return function(){
+      if (!foundGames.length) return;
+      if (foundGames.length === 1) {
+        open_(d + '/game_report_G' + foundGames[0] + '.html', '📄 Game Report G' + foundGames[0]);
+        return;
+      }
+      var btns = document.getElementById('gr-buttons');
+      btns.innerHTML = '';
+      foundGames.forEach(function(gn){
+        var b = document.createElement('button');
+        b.className = 'modal-btn';
+        b.textContent = '📄 Game ' + gn + ' — ' + d.replace(/_/g,' ').split(' vs ')[0].trim().split(' ').slice(-2).join(' ') + ' vs ' + (d.replace(/_/g,' ').split(' vs ')[1] || '').trim().split(' ')[0];
+        b.onclick = (function(n, dir2){ return function(){
+          document.getElementById('gr-modal').style.display = 'none';
+          open_(dir2 + '/game_report_G' + n + '.html', '📄 Game Report G' + n);
+        };})(gn, d);
+        btns.appendChild(b);
+      });
+      document.getElementById('gr-modal').style.display = 'flex';
+    };
+  })(dir, foundGames);
+
+  grid.appendChild(grCard);
+  block.appendChild(grid);
+  container.appendChild(block);
+}
+
+// ── AUTODETECT SERIES ────────────────────────────────────────────────────────
+var _scoutedTeam = '';
+
+function inferScoutedTeam(dirs) {
+  if (!dirs.length) return '';
+  var teamSets = dirs.map(function(dir) {
+    // Remove date in any format: DD-MM-YYYY or YYYY-MM-DD
+    var clean = dir.replace(/_\d{2}-\d{2}-\d{4}$/, '')
+                   .replace(/_\d{4}-\d{2}-\d{2}$/, '');
+    var parts = clean.split('_vs_');
+    if (parts.length < 2) return null;
+    return {
+      a: parts[0].replace(/_/g, ' ').trim(),
+      b: parts.slice(1).join('_vs_').replace(/_/g, ' ').trim()
+    };
+  }).filter(Boolean);
+
+  if (!teamSets.length) return '';
+  var candidates = [teamSets[0].a, teamSets[0].b];
+  for (var i = 1; i < teamSets.length; i++) {
+    candidates = candidates.filter(function(c) {
+      return teamSets[i].a === c || teamSets[i].b === c;
+    });
+    if (!candidates.length) break;
+  }
+  return candidates[0] || '';
+}
+
+(function detectSeries(){
+  fetch('http://localhost:5000/api/series_list')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var dirs = d.series || [];
+      dirs.forEach(function(dir){ buildSeriesSection(dir, []); });
+      updateGlobalCount(dirs.length);
+      _scoutedTeam = inferScoutedTeam(dirs);
+      if (_scoutedTeam) document.getElementById('btn-pdf-float').style.display = 'flex';
+    })
+    .catch(function(){
+      fetch('series_manifest.json')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var dirs = d.series || [];
+          dirs.forEach(function(dir){ buildSeriesSection(dir, []); });
+          updateGlobalCount(dirs.length);
+          _scoutedTeam = inferScoutedTeam(dirs);
+          if (_scoutedTeam) document.getElementById('btn-pdf-float').style.display = 'flex';
+        })
+        .catch(function(){
+          document.getElementById('series-container').innerHTML =
+            '<div style="padding:24px 16px;font-family:\'Share Tech Mono\',monospace;font-size:.6rem;color:#2a3840;letter-spacing:1px;">No series detected — process at least one series first</div>';
+        });
+    });
+})();
+
+function updateGlobalCount(n) {
+  var el = document.getElementById('global-count');
+  if (el) el.textContent = 'global · ' + n + ' series';
+}
+
+// ── EXPORT PDF ───────────────────────────────────────────────────────────────
+function exportPDF() {
+  var btn = document.getElementById('btn-pdf-float');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
+
+  fetch('http://localhost:5000/export/team_profile_pdf?team=' + encodeURIComponent(_scoutedTeam))
+    .then(function(r) {
+      if (!r.ok) return r.json().then(function(d){ throw new Error(d.error || 'Error'); });
+      return r.blob();
+    })
+    .then(function(blob) {
+      var url = URL.createObjectURL(blob);
+      var a   = document.createElement('a');
+      a.href  = url;
+      a.download = _scoutedTeam.replace(/\s+/g,'_') + '_team_profile.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      btn.textContent = '✅ Downloaded';
+      setTimeout(function(){ btn.textContent = '📄 Export Opponent PDF'; btn.disabled = false; }, 2500);
+    })
+    .catch(function(err) {
+      btn.textContent = '❌ ' + err.message;
+      btn.disabled = false;
+      setTimeout(function(){ btn.textContent = '📄 Export Opponent PDF'; }, 3000);
+    });
+}
+
+// ── VIEWER ───────────────────────────────────────────────────────────────────
+function open_(file, title){
+  var frame = document.getElementById('vframe');
+  frame.style.opacity = '0';
+  frame.src = '';
+  setTimeout(function(){ frame.src = file; }, 0);
+  frame.onload = function(){
+    frame.style.transition = 'opacity .25s ease';
+    frame.style.opacity = '1';
+  };
+  document.getElementById('vtitle').textContent = title;
+  document.getElementById('viewer').style.display = 'flex';
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('topbar').style.display = 'none';
+}
+function closeV(){
+  document.getElementById('viewer').style.display = 'none';
+  document.getElementById('main').style.display = 'flex';
+  document.getElementById('topbar').style.display = 'flex';
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeV(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Jungle Analysis</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#c89b3c;--gold2:#f0d07a;--dark:#08090c;--panel:#0d1117;--panel2:#111820;
+  --border:#1a2632;--border2:#243040;--text:#9ab0c0;--text2:#4a6070;
+  --blue:#4fc3f7;--blue-dim:rgba(79,195,247,.10);--blue-bd:rgba(79,195,247,.25);
+  --red:#ef5350;--red-dim:rgba(239,83,80,.10);--red-bd:rgba(239,83,80,.25);
+  --green:#4caf50;--orange:#ff9800;--jungle:#66bb6a;--jgl-dim:rgba(102,187,106,.10);
+  --purple:#ce93d8;
+}
+html,body{height:100vh;width:100vw;overflow:hidden;background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;display:flex;flex-direction:column;}
+.hdr{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 16px;height:44px;border-bottom:1px solid var(--border);background:var(--panel);}
+.hdr-back{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);cursor:pointer;padding:4px 10px;border:1px solid var(--border2);border-radius:3px;transition:all .15s;}
+.hdr-back:hover{color:var(--text);border-color:var(--gold);}
+.hdr-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:var(--jungle);}
+.hdr-meta{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--text2);}
+.side-tabs{display:flex;gap:4px;margin-left:auto;}
+.side-tab{padding:4px 12px;border-radius:3px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .15s;user-select:none;}
+.side-tab.all.active{border-color:var(--gold);background:rgba(200,155,60,.08);color:var(--gold);}
+.side-tab.blue.active{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);}
+.side-tab.red.active{border-color:var(--red);background:var(--red-dim);color:var(--red);}
+.fab{position:fixed;bottom:18px;right:18px;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;background:var(--panel);border:1px solid var(--border2);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);transition:all .15s;z-index:50;}
+.fab:hover{border-color:var(--gold);color:var(--gold);}
+.nav{flex-shrink:0;display:flex;border-bottom:1px solid var(--border);background:var(--panel2);}
+.nav-tab{padding:8px 18px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;transition:all .15s;user-select:none;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.active{color:var(--jungle);border-bottom-color:var(--jungle);}
+.content{flex:1;min-height:0;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:12px;}
+.content::-webkit-scrollbar{width:5px}.content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.pv{display:none;flex-direction:column;gap:12px;}
+.pv.active{display:flex;}
+.sec{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--text2);padding:4px 0 6px;border-bottom:1px solid var(--border);}
+.cards{display:flex;gap:8px;flex-wrap:wrap;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 16px;min-width:80px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.card.jgl{border-color:rgba(102,187,106,.3);background:var(--jgl-dim);}
+.card.blue{border-color:var(--blue-bd);background:var(--blue-dim);}
+.card.red{border-color:var(--red-bd);background:var(--red-dim);}
+.cv{font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:800;color:var(--gold2);line-height:1;}
+.cv.g{color:var(--green)}.cv.b{color:var(--blue)}.cv.jg{color:var(--jungle)}.cv.o{color:var(--orange)}.cv.p{color:var(--purple)}
+.cl{font-family:'Barlow Condensed',sans-serif;font-size:.55rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);text-align:center;}
+.cico{border-radius:50%;overflow:hidden;background:var(--panel2);border:2px solid var(--border2);flex-shrink:0;}
+.cico img{width:100%;height:100%;object-fit:cover;display:block;}
+.cn{font-family:'Barlow Condensed',sans-serif;font-size:.88rem;font-weight:700;color:var(--text);}
+.cn-s{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--text2);}
+.side-badge{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:3px;flex-shrink:0;}
+.side-badge.blue{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-bd);}
+.side-badge.red{background:var(--red-dim);color:var(--red);border:1px solid var(--red-bd);}
+.camp-pill{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap;}
+.camp-pill.blue-buff{background:rgba(79,195,247,.15);color:var(--blue);border:1px solid var(--blue-bd);}
+.camp-pill.red-buff{background:rgba(239,83,80,.15);color:var(--red);border:1px solid var(--red-bd);}
+.camp-pill.gromp,.camp-pill.wolves,.camp-pill.raptors,.camp-pill.krugs{background:rgba(102,187,106,.12);color:var(--jungle);border:1px solid rgba(102,187,106,.3);}
+.camp-pill.scuttler{background:rgba(206,147,216,.15);color:var(--purple);border:1px solid rgba(206,147,216,.3);}
+.camp-pill.dragon{background:rgba(239,83,80,.18);color:#ff8a65;border:1px solid rgba(239,83,80,.4);}
+.camp-pill.herald,.camp-pill.baron,.camp-pill.grub{background:rgba(200,155,60,.15);color:var(--gold2);border:1px solid rgba(200,155,60,.3);}
+.camp-pill.default{background:var(--panel2);color:var(--text2);border:1px solid var(--border2);}
+.arr{color:var(--border2);font-size:.65rem;flex-shrink:0;}
+.time-badge{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--gold2);background:rgba(200,155,60,.08);border:1px solid rgba(200,155,60,.2);border-radius:3px;padding:2px 6px;flex-shrink:0;}
+.time-badge.gank{background:rgba(239,83,80,.08);border-color:rgba(239,83,80,.25);color:var(--red);}
+.time-badge.na{color:var(--text2);background:transparent;border-color:var(--border2);}
+.stbl{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.stbl th{font-family:'Barlow Condensed',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text2);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--panel2);}
+.stbl td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.stbl tr:last-child td{border-bottom:none;}
+.stbl tr:hover td{background:rgba(255,255,255,.012);}
+.mono{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--gold2);}
+.mono.g{color:var(--green)}.mono.b{color:var(--blue)}.mono.r{color:var(--red)}.mono.dim{color:var(--text2);}
+.rf-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.rf-row:last-child{border-bottom:none;}
+.rf-n{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;color:var(--gold2);width:28px;text-align:right;flex-shrink:0;}
+.rf-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.rf-fill{height:100%;border-radius:4px;background:var(--jungle);}
+.rf-pct{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--text2);width:30px;text-align:right;flex-shrink:0;}
+.empty{padding:40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.empty-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;color:var(--gold);}
+.empty-sub{font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--text2);}
+.game-block{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.game-block-hdr{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--panel2);font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.gline{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);}
+.gline:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <span class="hdr-title">🌲 JUNGLE ANALYSIS</span>
+  <span class="hdr-meta" id="hdrMeta">loading...</span>
+  <div class="side-tabs">
+    <div class="side-tab all active" id="stAll">ALL</div>
+    <div class="side-tab blue" id="stBlue">🔵 BLUE</div>
+    <div class="side-tab red" id="stRed">🔴 RED</div>
+  </div>
+</div>
+<div class="nav">
+  <div class="nav-tab active" data-p="overview">OVERVIEW</div>
+  <div class="nav-tab" data-p="first_clear">FIRST CLEAR</div>
+  <div class="nav-tab" data-p="routes">ROUTES</div>
+  <div class="nav-tab" data-p="gank">FIRST GANK</div>
+  <div class="nav-tab" data-p="objetivos">OBJETIVOS</div>
+  <div class="nav-tab" data-p="games">GAMES</div>
+</div>
+<div class="content">
+  <div class="pv active" id="pv-overview"></div>
+  <div class="pv" id="pv-first_clear"></div>
+  <div class="pv" id="pv-routes"></div>
+  <div class="pv" id="pv-gank"></div>
+  <div class="pv" id="pv-objetivos"></div>
+  <div class="pv" id="pv-games"></div>
+</div>
+
+<script>
+let SD=null, currentSide='all', DD='';
+const CK={};
+
+async function loadDD(){
+  try{
+    const v=await(await fetch('https://ddragon.leagueoflegends.com/api/versions.json')).json();
+    DD=`https://ddragon.leagueoflegends.com/cdn/${v[0]}/img/champion/`;
+    const d=await(await fetch(`https://ddragon.leagueoflegends.com/cdn/${v[0]}/data/en_US/champion.json`)).json();
+    Object.entries(d.data).forEach(([k,v])=>CK[v.name]=k);
+    // Patch already-rendered images retroactively
+    document.querySelectorAll('img[data-champ]').forEach(img=>{
+      const n=img.dataset.champ; if(!n)return;
+      img.src=`${DD}${CK[n]||n.replace(/[' .]/g,'')}.png`;
+      img.onerror=()=>img.style.display='none';
+    });
+  }catch(e){}
+}
+function cSrc(n){return DD?`${DD}${CK[n]||n.replace(/[' .]/g,'')}.png`:'';}
+function cico(n,sz=34){
+  const src=cSrc(n);
+  return `<div class="cico" style="width:${sz}px;height:${sz}px"><img data-champ="${n||''}" src="${src}" onerror="this.style.display='none'" alt="${n||''}"></div>`;
+}
+
+const CAMP_CLS={
+  'Blue':'blue-buff','Gromp':'gromp','Wolves':'wolves','Raptors':'raptors','Krugs':'krugs',
+  'Red':'red-buff','Scuttler':'scuttler','Dragon':'dragon','Herald':'herald',
+  'Baron':'baron','Grub':'grub','Crab':'scuttler',
+};
+function pill(lbl){return `<span class="camp-pill ${CAMP_CLS[lbl]||'default'}">${lbl}</span>`;}
+function route(arr){
+  if(!arr||!arr.length) return '<span style="color:var(--text2);font-size:.72rem">—</span>';
+  return arr.map(pill).join('<span class="arr"> › </span>');
+}
+function mmss(ms){
+  if(!ms) return '—';
+  const s=Math.floor(ms/1000);
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+function pct(n,d){return d?Math.round(n/d*100):0;}
+
+function allGames(){
+  if(!SD)return[];
+  const all=SD.series.flatMap(s=>s.games);
+  // Deduplicate games that appear in both output/ root AND a named subdirectory.
+  // The root HTML ("series_label: output") is always the stale copy — prefer the
+  // subdirectory one.  Fingerprint = champion + side + first_clear route + back_time.
+  const seen=new Map(); // fingerprint -> index in result
+  const result=[];
+  for(const g of all){
+    const route=(g.first_clear?.route||[]).join(',');
+    const fp=`${g.champion||''}|${g.side||''}|${route}|${g.first_clear?.clear_end_ms||0}`;
+    if(seen.has(fp)){
+      // Prefer the named-series version over the root "output" one
+      const existing=result[seen.get(fp)];
+      if((existing.series_label||'')==='output' && (g.series_label||'')!=='output'){
+        result[seen.get(fp)]=g; // replace with the better one
+      }
+    } else {
+      seen.set(fp, result.length);
+      result.push(g);
+    }
+  }
+  return result;
+}
+function filtered(){
+  const g=allGames();
+  if(currentSide==='all')return g;
+  return g.filter(g=>g.side===currentSide);
+}
+
+// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderOverview(games){
+  const el=document.getElementById('pv-overview');
+  if(!games.length){el.innerHTML=empty();return;}
+  const n=games.length;
+  const blueN=games.filter(g=>g.side==='blue').length;
+  const blueStart=games.filter(g=>g.first_clear?.start_side==='blue_start').length;
+  const redStart=games.filter(g=>g.first_clear?.start_side==='red_start').length;
+  const fullClear=games.filter(g=>g.first_clear?.full_clear).length;
+  const gTs=games.filter(g=>g.first_gank).map(g=>g.first_gank.time_ms).filter(Boolean);
+  const avgGank=gTs.length?Math.round(gTs.reduce((a,b)=>a+b,0)/gTs.length):0;
+  const sTs=games.filter(g=>g.first_scuttler).map(g=>g.first_scuttler.time_ms).filter(Boolean);
+  const avgScut=sTs.length?Math.round(sTs.reduce((a,b)=>a+b,0)/sTs.length):0;
+  const cf={};games.forEach(g=>{if(g.champion)cf[g.champion]=(cf[g.champion]||0)+1;});
+  const topC=Object.entries(cf).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const rf=SD.summary?.route_frequency||{};
+  const topR=Object.entries(rf).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxRF=topR[0]?.[1]||1;
+
+  el.innerHTML=`
+    <div class="sec">ESTADÍSTICAS GENERALES</div>
+    <div class="cards">
+      <div class="card jgl"><span class="cv jg">${n}</span><span class="cl">Games</span></div>
+      <div class="card blue"><span class="cv b">${blueN}</span><span class="cl">Blue Side</span></div>
+      <div class="card red"><span class="cv" style="color:var(--red)">${n-blueN}</span><span class="cl">Red Side</span></div>
+      <div class="card"><span class="cv b">${blueStart}</span><span class="cl">Blue Start</span></div>
+      <div class="card"><span class="cv" style="color:var(--red)">${redStart}</span><span class="cl">Red Start</span></div>
+      <div class="card"><span class="cv jg">${fullClear}</span><span class="cl">Full Clear</span></div>
+      <div class="card"><span class="cv o">${mmss(avgGank)||'—'}</span><span class="cl">Avg 1st Gank</span></div>
+      <div class="card"><span class="cv p">${mmss(avgScut)||'—'}</span><span class="cl">Avg Scuttler</span></div>
+    </div>
+    ${topC.length?`
+    <div class="sec" style="margin-top:6px">CAMPEONES JUGADOS</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${topC.map(([c,n2])=>`
+      <div style="display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:7px 12px;min-width:130px">
+        ${cico(c,38)}
+        <div><div class="cn">${c}</div><div class="cn-s">${n2} game${n2!==1?'s':''}</div></div>
+      </div>`).join('')}
+    </div>`:''}
+    ${topR.length?`
+    <div class="sec" style="margin-top:6px">MOST FREQUENT ROUTES</div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 12px">
+      ${topR.map(([r2,n2])=>`
+        <div class="rf-row">
+          <span class="rf-n">${n2}×</span>
+          <div style="flex:1;display:flex;align-items:center;gap:3px;flex-wrap:wrap">${r2.split(' → ').map(pill).join('<span class="arr"> › </span>')}</div>
+          <span class="rf-pct">${pct(n2,n)}%</span>
+          <div style="width:80px;min-width:80px;height:8px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0"><div style="height:100%;border-radius:4px;background:var(--jungle);width:${pct(n2,maxRF)}%"></div></div>
+        </div>`).join('')}
+    </div>`:''}`;
+}
+
+// ─── FIRST CLEAR ──────────────────────────────────────────────────────────────
+function renderFirstClear(games){
+  const el=document.getElementById('pv-first_clear');
+  if(!games.length){el.innerHTML=empty();return;}
+  el.innerHTML=`
+    <div class="sec">FIRST CLEAR PER GAME</div>
+    <table class="stbl"><thead><tr>
+      <th>G</th><th>SIDE</th><th>CHAMPION</th><th>START</th><th>ROUTE</th><th>BACK</th><th>CLEAR</th><th>CAMPS</th><th>SERIES</th>
+    </tr></thead><tbody>
+    ${games.map(g=>{
+      const fc=g.first_clear||{};
+      const side=g.side||'blue';
+      const startLbl=fc.start_side==='blue_start'?'🔵 Blue':fc.start_side==='red_start'?'🔴 Red':'?';
+      return `<tr>
+        <td><span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;color:var(--gold2)">G${g.game_num}</span></td>
+        <td><span class="side-badge ${side}">${side.toUpperCase()}</span></td>
+        <td><div style="display:flex;align-items:center;gap:7px">${cico(g.champion||'',30)}<div><div class="cn">${g.champion||'?'}</div><div class="cn-s">${(g.player||'').split(' ').pop()}</div></div></div></td>
+        <td><span style="font-family:'Barlow Condensed',sans-serif;font-size:.78rem;color:var(--text2)">${startLbl}</span></td>
+        <td><div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap">${route(fc.route||[])}</div></td>
+        <td><span class="time-badge">${fc.clear_end_str||'—'}</span></td>
+        <td><span class="mono ${fc.full_clear?'g':'dim'}">${fc.full_clear?'FULL':'PARTIAL'}</span></td>
+        <td><span class="mono dim">${fc.camps_in_clear||0}</span></td>
+        <td><span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block">${g.series_label||''}</span></td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+}
+
+// ─── ROUTES ────────────────────────────────────────────────────────────────────
+function renderRoutes(games){
+  const el=document.getElementById('pv-routes');
+  if(!games.length){el.innerHTML=empty();return;}
+  const blueG=games.filter(g=>g.first_clear?.start_side==='blue_start');
+  const redG=games.filter(g=>g.first_clear?.start_side==='red_start');
+  function grp(lbl,glist,col){
+    if(!glist.length)return'';
+    const freq={};
+    glist.forEach(g=>{const r=(g.first_clear?.route||[]).join(' › ');if(r)freq[r]=(freq[r]||0)+1;});
+    const s=Object.entries(freq).sort((a,b)=>b[1]-a[1]);
+    const mx=s[0]?.[1]||1;
+    return `<div class="game-block">
+      <div class="game-block-hdr" style="color:${col}">${lbl} — ${glist.length} game${glist.length!==1?'s':''}</div>
+      <div style="padding:6px 12px">
+        ${s.map(([r2,n2])=>`<div class="rf-row">
+          <span class="rf-n">${n2}×</span>
+          <div style="min-width:0;flex:1;display:flex;align-items:center;gap:3px;flex-wrap:wrap">${r2.split(' › ').map(pill).join('<span class="arr"> › </span>')}</div>
+          <span class="rf-pct">${pct(n2,glist.length)}%</span>
+          <div style="width:120px;min-width:120px;height:8px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0"><div style="height:100%;border-radius:4px;background:${col};opacity:0.6;width:${pct(n2,mx)}%"></div></div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  el.innerHTML=`
+    <div class="sec">START DISTRIBUTION</div>
+    <div class="cards">
+      <div class="card blue"><span class="cv b">${blueG.length}</span><span class="cl">Blue Start</span></div>
+      <div class="card red"><span class="cv" style="color:var(--red)">${redG.length}</span><span class="cl">Red Start</span></div>
+      <div class="card jgl"><span class="cv jg">${games.filter(g=>g.first_clear?.full_clear).length}</span><span class="cl">Full Clear</span></div>
+    </div>
+    <div class="sec" style="margin-top:6px">ROUTES BY START SIDE</div>
+    ${grp('🔵 BLUE START',blueG,'var(--blue)')}
+    ${grp('🔴 RED START',redG,'var(--red)')}
+    ${!blueG.length&&!redG.length?'<div style="color:var(--text2);font-family:\'Share Tech Mono\',monospace;font-size:.72rem;padding:12px">No start data available</div>':''}`;
+}
+
+// ─── FIRST GANK ───────────────────────────────────────────────────────────────
+function renderGank(games){
+  const el=document.getElementById('pv-gank');
+  if(!games.length){el.innerHTML=empty();return;}
+  const gG=games.filter(g=>g.first_gank);
+  const ts=gG.map(g=>g.first_gank.time_ms).filter(Boolean);
+  const avg=ts.length?Math.round(ts.reduce((a,b)=>a+b,0)/ts.length):0;
+  const early=gG.filter(g=>(g.first_gank.time_ms||0)<5*60*1000).length;
+  el.innerHTML=`
+    <div class="sec">FIRST GANK SUMMARY</div>
+    <div class="cards">
+      <div class="card"><span class="cv o">${mmss(avg)||'—'}</span><span class="cl">Avg Tiempo</span></div>
+      <div class="card jgl"><span class="cv jg">${gG.length}</span><span class="cl">With Gank</span></div>
+      <div class="card red"><span class="cv" style="color:var(--red)">${games.length-gG.length}</span><span class="cl">Sin Gank</span></div>
+      <div class="card blue"><span class="cv b">${early}</span><span class="cl">Before 5:00</span></div>
+    </div>
+    <div class="sec" style="margin-top:6px">FIRST GANK PER GAME</div>
+    <table class="stbl"><thead><tr><th>G</th><th>SIDE</th><th>CHAMPION</th><th>TIME</th><th>TYPE</th><th>SERIES</th></tr></thead>
+    <tbody>${games.map(g=>{
+      const side=g.side||'blue';
+      const fg=g.first_gank;
+      return `<tr>
+        <td><span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;color:var(--gold2)">G${g.game_num}</span></td>
+        <td><span class="side-badge ${side}">${side.toUpperCase()}</span></td>
+        <td><div style="display:flex;align-items:center;gap:7px">${cico(g.champion||'',28)}<span class="cn">${g.champion||'?'}</span></div></td>
+        <td>${fg?`<span class="time-badge gank">${fg.time_str||mmss(fg.time_ms)}</span>`:'<span class="mono dim">—</span>'}</td>
+        <td><span style="font-family:'Barlow Condensed',sans-serif;font-size:.78rem;color:var(--text2)">${fg?.type?.toUpperCase()||'—'}</span></td>
+        <td><span style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text2)">${g.series_label||''}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+// ─── OBJETIVOS ────────────────────────────────────────────────────────────────
+function renderObjetivos(games){
+  const el=document.getElementById('pv-objetivos');
+  if(!games.length){el.innerHTML=empty();return;}
+  const fsG=games.filter(g=>g.first_scuttler);
+  const sTs=fsG.map(g=>g.first_scuttler.time_ms).filter(Boolean);
+  const avgScut=sTs.length?Math.round(sTs.reduce((a,b)=>a+b,0)/sTs.length):0;
+  const epics={};
+  games.filter(g=>g.first_epic).forEach(g=>{const t=g.first_epic.type||'?';epics[t]=(epics[t]||0)+1;});
+  el.innerHTML=`
+    <div class="sec">EPIC OBJECTIVES & SCUTTLER</div>
+    <div class="cards">
+      <div class="card"><span class="cv p">${mmss(avgScut)||'—'}</span><span class="cl">Avg Scuttler</span></div>
+      <div class="card jgl"><span class="cv jg">${fsG.length}</span><span class="cl">Scuttler</span></div>
+      ${Object.entries(epics).map(([t,n2])=>`<div class="card"><span class="cv o">${n2}</span><span class="cl">${t}</span></div>`).join('')}
+    </div>
+    <div class="sec" style="margin-top:6px">POR PARTIDA</div>
+    <table class="stbl"><thead><tr><th>G</th><th>SIDE</th><th>CHAMPION</th><th>SCUTTLER</th><th>FIRST EPIC</th><th>CAMPS</th><th>K</th><th>A</th></tr></thead>
+    <tbody>${games.map(g=>{
+      const side=g.side||'blue';
+      const os=g.objectives_summary||{};
+      return `<tr>
+        <td><span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;color:var(--gold2)">G${g.game_num}</span></td>
+        <td><span class="side-badge ${side}">${side.toUpperCase()}</span></td>
+        <td><div style="display:flex;align-items:center;gap:7px">${cico(g.champion||'',28)}<span class="cn">${g.champion||'?'}</span></div></td>
+        <td>${g.first_scuttler?`<span class="time-badge">${g.first_scuttler.time_str||mmss(g.first_scuttler.time_ms)}</span>`:'<span class="mono dim">—</span>'}</td>
+        <td>${g.first_epic?`${pill(g.first_epic.type||'?')} <span class="time-badge" style="margin-left:3px">${g.first_epic.time_str||mmss(g.first_epic.time_ms)}</span>`:'<span class="mono dim">—</span>'}</td>
+        <td><span class="mono dim">${os.camps||0}</span></td>
+        <td><span class="mono ${(g.total_kills||0)>0?'g':'dim'}">${g.total_kills||0}</span></td>
+        <td><span class="mono b">${g.total_assists||0}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+// ─── GAMES ─────────────────────────────────────────────────────────────────────
+function renderGames(games){
+  const el=document.getElementById('pv-games');
+  if(!games.length){el.innerHTML=empty();return;}
+  const bySeries={};
+  games.forEach(g=>{const lbl=g.series_label||'No label';if(!bySeries[lbl])bySeries[lbl]=[];bySeries[lbl].push(g);});
+  el.innerHTML=Object.entries(bySeries).map(([lbl,sg])=>`
+    <div class="game-block">
+      <div class="game-block-hdr" style="color:var(--jungle)">${lbl}</div>
+      ${sg.map(g=>{
+        const side=g.side||'blue';
+        const fc=g.first_clear||{};
+        return `<div class="gline">
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;color:var(--gold2);width:22px">G${g.game_num}</span>
+          <span class="side-badge ${side}">${side.toUpperCase()}</span>
+          <div style="display:flex;align-items:center;gap:7px;min-width:130px">${cico(g.champion||'',32)}<div><div class="cn">${g.champion||'?'}</div><div class="cn-s">${(g.player||'').split(' ').pop()}</div></div></div>
+          <div style="flex:1;display:flex;align-items:center;gap:3px;flex-wrap:wrap">${route(fc.route||[])}</div>
+          <span class="time-badge ${fc.clear_end_str?'':'na'}">${fc.clear_end_str||'—'}</span>
+          ${g.first_gank?`<span class="time-badge gank">gank ${g.first_gank.time_str||mmss(g.first_gank.time_ms)}</span>`:''}
+          <span style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text2)">${g.total_kills||0}K ${g.total_assists||0}A</span>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function empty(){return `<div class="empty"><div class="empty-title">No data for this filter</div><div class="empty-sub">Try ALL instead of BLUE/RED</div></div>`;}
+
+function renderAll(){
+  const g=filtered();
+  renderOverview(g);renderFirstClear(g);renderRoutes(g);renderGank(g);renderObjetivos(g);renderGames(g);
+}
+
+document.querySelectorAll('.nav-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.pv').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(`pv-${t.dataset.p}`).classList.add('active');
+  });
+});
+['stAll','stBlue','stRed'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(){
+    document.querySelectorAll('.side-tab').forEach(t=>t.classList.remove('active'));
+    this.classList.add('active');
+    currentSide=id==='stAll'?'all':id==='stBlue'?'blue':'red';
+    renderAll();
+  });
+});
+
+(async()=>{
+  await loadDD();
+  let loaded=false;
+
+  // 1. Flask API (puerto dinámico — prueba 5000 y 8100)
+  for(const port of [5000]){
+    if(loaded) break;
+    try{
+      const r=await fetch(`http://localhost:${port}/api/jungle_season`);
+      if(r.ok){
+        const d=await r.json();
+        if(d.total_games>0&&d.series){SD=d;loaded=true;console.log(`Jungle season via :${port}`,d.total_games,'games');}
+      }
+    }catch(e){}
+  }
+
+  // 2. Fallback: jungle_season.json relativo (funciona cuando Flask sirve el archivo)
+  if(!loaded){
+    try{
+      const r=await fetch('jungle_season.json');
+      if(r.ok){const d=await r.json();if(d.total_games>0&&d.series){SD=d;loaded=true;}}
+    }catch(e){}
+  }
+
+  // 3. Fallback: ruta absoluta desde output/
+  if(!loaded){
+    try{
+      const r=await fetch('/output/jungle_season.json',{signal:AbortSignal.timeout(2000)});
+      if(r.ok){const d=await r.json();if(d.total_games>0&&d.series){SD=d;loaded=true;}}
+    }catch(e){}
+  }
+
+  if(loaded&&SD){
+    const deduped=allGames();
+    const totalG=deduped.length;
+    const totalS=new Set(deduped.map(g=>g.series_label||'').filter(l=>l&&l!=='output')).size || SD.total_series;
+    document.getElementById('hdrMeta').textContent=`${totalG} game${totalG!==1?'s':''} · ${totalS} series`;
+    renderAll();
+  } else {
+    document.getElementById('hdrMeta').textContent='no data';
+    ['overview','first_clear','routes','gank','objectives','games'].forEach(p=>{
+      document.getElementById(`pv-${p}`).innerHTML=`<div class="empty">
+        <div class="empty-title">No data — download at least one series first</div>
+        <div class="empty-sub">The War Room reads automatically from all downloaded series</div>
+      </div>`;
+    });
+  }
+})();
+</script>
+</body>
+</html>
